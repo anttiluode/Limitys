@@ -1,0 +1,50 @@
+{
+  "gates": {
+    "G0": true,
+    "H1": false,
+    "H2": true,
+    "H3": false
+  },
+  "means": {
+    "GRU": {
+      "JUNCTION": 0.23333333432674408,
+      "FINAL": 1.0,
+      "ENDING": 0.27111111223697665,
+      "params": 18772.0
+    },
+    "GATE": {
+      "JUNCTION": 0.23333333432674408,
+      "FINAL": 1.0,
+      "ENDING": 0.29555555671453476,
+      "params": 19156.0
+    },
+    "MASSE": {
+      "JUNCTION": 0.7933333349227906,
+      "FINAL": 1.0,
+      "ENDING": 0.7822222208976746,
+      "params": 18772.0
+    },
+    "MICRO": {
+      "JUNCTION": 0.23333333432674408,
+      "FINAL": 1.0,
+      "ENDING": 0.30888889089226723,
+      "params": 18429.0
+    }
+  },
+  "H1_micro_minus_gate": {
+    "mean": 0.0,
+    "positive": 0,
+    "per_seed": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "H3_micro_minus_gru": {
+    "mean": 0.0,
+    "positive": 0
+  },
+  "H2_best_gate_minus_gru": 0.5600000005960465
+}
