@@ -86,14 +86,43 @@ is off for a context outputs exactly zero, so training on that context sends it 
 cannot touch it. MICRO_FIXED's gate is a sigmoid that is never exactly zero and can be pushed by
 learned terms, so gradients from new phases still reach the old units. If this is right, the
 protection comes from **hard, unlearnable exclusion**, not from where the gate sits or from
-fixed wiring as such. The direct test would be MICRO_FIXED with a hard 0/1 apical gate. It
-was not run.
+fixed wiring as such. The direct test is v0.3, below.
+
+## v0.3: the microcircuit with a hard 0/1 apical gate
+
+Pre-registered before it ran. MICRO_HARD is MICRO_FIXED with a fixed hard 0/1 mask per context
+multiplied onto its apical gate: units that are off for a context output exactly zero.
+
+| arm | retention, all phases | all ending tokens |
+|---|---:|---:|
+| MICRO_FIXED (soft fixed gate) | 0.273 | 0.387 |
+| MICRO_HARD (hard 0/1 gate) | **0.533** | 0.669 |
+| MASSE (hard 0/1 mask on a plain GRU) | 0.793 | 0.782 |
+
+| gate | result |
+|---|---|
+| H6 hard exclusion rescues the microcircuit (≥ +0.20 over MICRO_FIXED) | **pass**: +0.260, 5/5 seeds |
+| H7 MICRO_HARD ties MASSE (within 0.05) | **fail**: 0.260 short, all 5 seeds |
+
+So hard exclusion is what protects old sequences: it roughly doubled the microcircuit's
+retention. But the anatomical microcircuit with the same kind of mask is still clearly *worse*
+than a plain GRU with it. An untested reading: the microcircuit's extra learned parts (SST
+drive, PV normalization, AIS release thresholds) are shared by every context, so each new phase
+still retunes them and disturbs the old ones.
+
+## Bottom line across v0–v0.3
+
+1. Learned gates, anatomical or generic, did not protect old sequences at all.
+2. What protected them was hard exclusion: units that are exactly off for a context, so new
+   learning cannot reach them.
+3. The anatomical decomposition added nothing on top, and with hard exclusion it did worse
+   than a plain gated GRU.
 
 ## Limits
 
 - One task family, 5 seeds, small networks, 400 steps per phase, no weight stabilization.
-- MICRO is one hand-made reading of the anatomy. The fixed-wiring version (v0.2) did not
-  behave like MASSE; a hard-gated version was not run.
+- MICRO is one hand-made reading of the anatomy; others might do better.
+- v0.2 and v0.3 were designed after seeing earlier results, each pre-registered before it ran.
 - Not new: context-dependent gating against forgetting (Masse, Grant & Freedman 2018);
   active dendrites (Iyer et al. 2022). What is specific here is the direct comparison
   showing the anatomical specifics did not help.
@@ -102,5 +131,5 @@ was not run.
 
 ```
 pip install numpy torch
-python run.py            # 25 runs + summary, ~3 min on 2 cores
+python run.py            # 30 runs + summary, ~4 min on 2 cores
 ```
