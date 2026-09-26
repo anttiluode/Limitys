@@ -10,10 +10,10 @@ from torch import nn
 V, P, PAIRS, WORLD_SEED = 20, 5, 3, 0
 PRE, MID, END = 2, 4, 3
 L = PRE + MID + END
-ARMS = ("GRU", "GATE", "MASSE", "MICRO", "MICRO_FIXED")
+ARMS = ("GRU", "GATE", "MASSE", "MICRO", "MICRO_FIXED", "MICRO_HARD")
 SEEDS = (1, 2, 3, 4, 5)
 CFG = {"steps_per_phase": 400, "lr": 3e-3, "batch": 64}
-HIDDEN = {"GRU": 64, "GATE": 64, "MASSE": 64, "MICRO": 52, "MICRO_FIXED": 52}
+HIDDEN = {"GRU": 64, "GATE": 64, "MASSE": 64, "MICRO": 52, "MICRO_FIXED": 52, "MICRO_HARD": 52}
 
 
 def make_world():
@@ -60,7 +60,10 @@ class Net(nn.Module):
             self.sst = nn.Linear(H, H)                 # slow inhibition driven by own activity
             self.chi = nn.Parameter(torch.zeros(H))    # AIS release threshold per unit
             self.k = nn.Parameter(torch.tensor(1.6))   # release steepness (softplus -> ~1.8)
-        if arm == "MICRO_FIXED":
+        if arm == "MICRO_HARD":
+            g2 = torch.Generator().manual_seed(3000 + seed)
+            self.register_buffer("hard", (torch.rand(P, H, generator=g2) < 0.5).float())
+        if arm in ("MICRO_FIXED", "MICRO_HARD"):
             # fixed random apical context wiring: +4 or -4 per unit and context, never trained
             g = torch.Generator().manual_seed(2000 + seed)
             w = (torch.rand(H, P, generator=g) < 0.5).float() * 8 - 4
@@ -82,6 +85,8 @@ class Net(nn.Module):
                 h = self.cell(x, p)
                 s = s + (F.relu(self.sst(h)) - s) / 4.0                       # SST: slow
                 g = torch.sigmoid(self.apical_c(c) + self.apical_h(h) - s)   # apical gate
+                if self.arm == "MICRO_HARD":
+                    g = g * self.hard[ctx]                                    # hard 0/1 exclusion
                 z = g * h
                 z = z / (1.0 + z.abs().mean(-1, keepdim=True))               # PV: fast divisive
                 r = torch.sigmoid(F.softplus(self.k) * 4 * (z - self.chi))  # AIS release

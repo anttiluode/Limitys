@@ -64,3 +64,15 @@ The four v0 arms are not re-run; their receipts stand.
 
 Claude's guesses: H4 65 %, H5 40 %. Risk: the learned state-driven apical term and SST can
 override the fixed context drive and bring forgetting back.
+
+## Addendum v0.3 — frozen before the new arm was run
+
+New arm **MICRO_HARD**: identical to MICRO_FIXED, except the apical gate is a fixed hard 0/1
+mask per context (each unit on with probability 0.5, same draw as MASSE's seed scheme but its
+own generator), multiplied onto the learned sigmoid gate. Units that are off for a context
+output exactly zero, so training on that context sends them no gradient.
+
+- **H6 — hard exclusion rescues the microcircuit**: MICRO_HARD − MICRO_FIXED JUNCTION ≥ +0.20.
+- **H7 — anatomy adds nothing beyond hard exclusion**: |MICRO_HARD − MASSE| JUNCTION < 0.05.
+
+Claude's guesses: H6 75 %, H7 50 %.

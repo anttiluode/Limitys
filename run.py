@@ -28,11 +28,17 @@ def summarize():
     h5 = d("MICRO_FIXED", "MASSE")
     gates["H4"] = bool(h4.mean() >= 0.10)
     gates["H5"] = bool(abs(h5.mean()) < 0.05)
+    h6 = d("MICRO_HARD", "MICRO_FIXED")
+    h7 = d("MICRO_HARD", "MASSE")
+    gates["H6"] = bool(h6.mean() >= 0.20)
+    gates["H7"] = bool(abs(h7.mean()) < 0.05)
     out = {"gates": gates, "means": m,
            "H1_micro_minus_gate": {"mean": float(h1.mean()), "positive": int((h1 > 0).sum()), "per_seed": h1.tolist()},
            "H3_micro_minus_gru": {"mean": float(h3.mean()), "positive": int((h3 > 0).sum())},
            "H4_microfixed_minus_micro": {"mean": float(h4.mean()), "positive": int((h4 > 0).sum()), "per_seed": h4.tolist()},
            "H5_microfixed_minus_masse": {"mean": float(h5.mean()), "positive": int((h5 > 0).sum()), "per_seed": h5.tolist()},
+           "H6_microhard_minus_microfixed": {"mean": float(h6.mean()), "positive": int((h6 > 0).sum())},
+           "H7_microhard_minus_masse": {"mean": float(h7.mean()), "positive": int((h7 > 0).sum()), "per_seed": h7.tolist()},
            "H2_best_gate_minus_gru": float(best_gate - m["GRU"]["JUNCTION"])}
     (OUT / "summary.json").write_text(json.dumps(out, indent=2))
     print(json.dumps(out, indent=2))
