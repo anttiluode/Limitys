@@ -10,10 +10,10 @@ from torch import nn
 V, P, PAIRS, WORLD_SEED = 20, 5, 3, 0
 PRE, MID, END = 2, 4, 3
 L = PRE + MID + END
-ARMS = ("GRU", "GATE", "MASSE", "MICRO")
+ARMS = ("GRU", "GATE", "MASSE", "MICRO", "MICRO_FIXED")
 SEEDS = (1, 2, 3, 4, 5)
 CFG = {"steps_per_phase": 400, "lr": 3e-3, "batch": 64}
-HIDDEN = {"GRU": 64, "GATE": 64, "MASSE": 64, "MICRO": 52}
+HIDDEN = {"GRU": 64, "GATE": 64, "MASSE": 64, "MICRO": 52, "MICRO_FIXED": 52}
 
 
 def make_world():
@@ -45,7 +45,8 @@ class Net(nn.Module):
         super().__init__()
         self.arm, H = arm, HIDDEN[arm]
         self.H = H
-        d_in = V + (0 if arm == "MICRO" else P)
+        micro = arm.startswith("MICRO")
+        d_in = V + (0 if micro else P)
         self.cell = nn.GRUCell(d_in, H)
         self.out = nn.Linear(H, V)
         if arm == "GATE":
@@ -53,12 +54,21 @@ class Net(nn.Module):
         if arm == "MASSE":
             g = torch.Generator().manual_seed(1000 + seed)
             self.register_buffer("mask", (torch.rand(P, H, generator=g) < 0.5).float())
-        if arm == "MICRO":
+        if micro:
             self.apical_c = nn.Linear(P, H)            # context arrives at the tuft
             self.apical_h = nn.Linear(H, H, bias=False)
             self.sst = nn.Linear(H, H)                 # slow inhibition driven by own activity
             self.chi = nn.Parameter(torch.zeros(H))    # AIS release threshold per unit
             self.k = nn.Parameter(torch.tensor(1.6))   # release steepness (softplus -> ~1.8)
+        if arm == "MICRO_FIXED":
+            # fixed random apical context wiring: +4 or -4 per unit and context, never trained
+            g = torch.Generator().manual_seed(2000 + seed)
+            w = (torch.rand(H, P, generator=g) < 0.5).float() * 8 - 4
+            with torch.no_grad():
+                self.apical_c.weight.copy_(w)
+                self.apical_c.bias.zero_()
+            self.apical_c.weight.requires_grad_(False)
+            self.apical_c.bias.requires_grad_(False)
 
     def forward(self, tok: torch.Tensor, ctx: torch.Tensor) -> torch.Tensor:
         B, T = tok.shape
@@ -68,7 +78,7 @@ class Net(nn.Module):
         logits = []
         for t in range(T):
             x = F.one_hot(tok[:, t], V).float()
-            if self.arm == "MICRO":
+            if self.arm.startswith("MICRO"):
                 h = self.cell(x, p)
                 s = s + (F.relu(self.sst(h)) - s) / 4.0                       # SST: slow
                 g = torch.sigmoid(self.apical_c(c) + self.apical_h(h) - s)   # apical gate
@@ -121,6 +131,6 @@ def run(arm: str, seed: int) -> dict:
             opt.step()
         after_phase.append(evaluate(net, seqs)["junction_by_phase"])
     res = evaluate(net, seqs)
-    res.update({"arm": arm, "seed": seed, "params": sum(p.numel() for p in net.parameters()),
+    res.update({"arm": arm, "seed": seed, "params": sum(p.numel() for p in net.parameters() if p.requires_grad),
                 "junction_matrix": after_phase})
     return res
