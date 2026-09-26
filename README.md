@@ -60,12 +60,40 @@ endings completely.
   points away from fast inhibitory control and toward slow, protected routing (in
   biology: wiring, or plasticity that is itself gated), which is Masse et al.'s conclusion too.
 
+## v0.2: the microcircuit with fixed context wiring
+
+Pre-registered in the `PREDICTIONS.md` addendum before it ran. MICRO_FIXED is MICRO with its apical
+context weights replaced by a fixed random ±4 per unit and context, never trained. Everything
+else still learns. Same 5 seeds.
+
+| arm | retention, all phases | all ending tokens |
+|---|---:|---:|
+| MICRO (learned context wiring) | 0.233 | 0.309 |
+| MICRO_FIXED | 0.273 | 0.387 |
+| MASSE (fixed 0/1 mask) | 0.793 | 0.782 |
+
+| gate | result |
+|---|---|
+| H4 fixed wiring rescues the microcircuit (≥ +0.10 over MICRO) | **fail**: +0.040 (2/5 seeds positive) |
+| H5 MICRO_FIXED ties MASSE (within 0.05) | **fail**: 0.52 short, all 5 seeds |
+
+Fixing the context wiring was not enough. The microcircuit's own learned parts (the
+state-driven apical term, SST inhibition) sit in the same gate as the fixed context drive, so
+each new phase can learn to override it, and forgetting came back almost fully.
+
+What separates MASSE from MICRO_FIXED, as an untested reading: MASSE's mask is hard. A unit that
+is off for a context outputs exactly zero, so training on that context sends it no gradient and
+cannot touch it. MICRO_FIXED's gate is a sigmoid that is never exactly zero and can be pushed by
+learned terms, so gradients from new phases still reach the old units. If this is right, the
+protection comes from **hard, unlearnable exclusion**, not from where the gate sits or from
+fixed wiring as such. The direct test would be MICRO_FIXED with a hard 0/1 apical gate. It
+was not run.
+
 ## Limits
 
 - One task family, 5 seeds, small networks, 400 steps per phase, no weight stabilization.
-- MICRO is one hand-made reading of the anatomy. A version whose apical context mapping is
-  fixed rather than learned would probably behave like MASSE; that was not run, and if it
-  does, the credit goes to the fixed mapping, not to the anatomy.
+- MICRO is one hand-made reading of the anatomy. The fixed-wiring version (v0.2) did not
+  behave like MASSE; a hard-gated version was not run.
 - Not new: context-dependent gating against forgetting (Masse, Grant & Freedman 2018);
   active dendrites (Iyer et al. 2022). What is specific here is the direct comparison
   showing the anatomical specifics did not help.
@@ -74,5 +102,5 @@ endings completely.
 
 ```
 pip install numpy torch
-python run.py            # 20 runs + summary, ~2 min on 2 cores
+python run.py            # 25 runs + summary, ~3 min on 2 cores
 ```

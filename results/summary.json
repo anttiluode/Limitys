@@ -3,7 +3,9 @@
     "G0": true,
     "H1": false,
     "H2": true,
-    "H3": false
+    "H3": false,
+    "H4": false,
+    "H5": false
   },
   "means": {
     "GRU": {
@@ -29,6 +31,12 @@
       "FINAL": 1.0,
       "ENDING": 0.30888889089226723,
       "params": 18429.0
+    },
+    "MICRO_FIXED": {
+      "JUNCTION": 0.27333333492279055,
+      "FINAL": 1.0,
+      "ENDING": 0.3866666707396507,
+      "params": 18117.0
     }
   },
   "H1_micro_minus_gate": {
@@ -45,6 +53,28 @@
   "H3_micro_minus_gru": {
     "mean": 0.0,
     "positive": 0
+  },
+  "H4_microfixed_minus_micro": {
+    "mean": 0.04000000059604645,
+    "positive": 2,
+    "per_seed": [
+      0.03333333432674407,
+      0.0,
+      0.0,
+      0.0,
+      0.16666666865348817
+    ]
+  },
+  "H5_microfixed_minus_masse": {
+    "mean": -0.5200000000000001,
+    "positive": 0,
+    "per_seed": [
+      -0.4333333313465118,
+      -0.5333333343267441,
+      -0.6333333343267441,
+      -0.566666665673256,
+      -0.4333333343267441
+    ]
   },
   "H2_best_gate_minus_gru": 0.5600000005960465
 }
