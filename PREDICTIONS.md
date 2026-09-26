@@ -46,3 +46,21 @@ beyond "a context gate" in this task.
 
 ## Ledger
 (none: nothing changed after freezing)
+
+## Addendum v0.2 — frozen before the new arm was run (written after v0's results)
+
+v0 showed that only a fixed, unlearned context mask protected old sequences. The cheap test:
+is that because of the fixed wiring, or can the anatomy help once its context wiring is fixed?
+
+New arm **MICRO_FIXED**: identical to MICRO, except the apical context weights are a fixed random
+mapping (each unit gets +4 or −4 per context, bias 0) and are never trained. Everything else in
+MICRO (state-driven apical term, SST, PV, AIS) still learns. Same seeds, steps and metrics.
+The four v0 arms are not re-run; their receipts stand.
+
+- **H4 — fixed wiring rescues the microcircuit**: MICRO_FIXED − MICRO JUNCTION ≥ +0.10.
+- **H5 — anatomy adds nothing beyond fixed wiring**: |MICRO_FIXED − MASSE| JUNCTION < 0.05.
+  (If MICRO_FIXED beats MASSE by ≥ 0.05, the anatomy helps on top of fixed wiring; if it falls
+  short by ≥ 0.05, its learned parts undo some of the protection.)
+
+Claude's guesses: H4 65 %, H5 40 %. Risk: the learned state-driven apical term and SST can
+override the fixed context drive and bring forgetting back.
